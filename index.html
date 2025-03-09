@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Generated NFT Platform</title>
+    <link rel="icon" type="image/x-icon" href="https://testnet.monadexplorer.com/favicon.ico">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="modal-fix.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Load Web3 library before any module scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+</head>
+<body>
+    <!-- Loading animation container -->
+    <div class="loader-container">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Intro Animation Canvas -->
+    <canvas id="introAnimation"></canvas>
+
+    <div class="container">
+        <!-- Header Section -->
+        <header>
+            <div class="logo">
+                <!-- SVG logo will be inserted by animation.js -->
+                <div class="logo-placeholder"></div>
+                <h1>AI NFT Generator & Messenger</h1>
+            </div>
+            <div class="wallet-connect">
+                <button id="connectWallet" class="btn">
+                    <!-- SVG wallet icon will be inserted by animation.js -->
+                    <span>Connect Wallet</span>
+                </button>
+                <div id="walletInfo" style="display: none;">
+                    <span id="userAddress"></span>
+                    <span id="networkName"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Section -->
+        <main>
+            <!-- Navigation Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="mint">Mint NFT</button>
+                <button class="tab-btn" data-tab="gallery">Gallery</button>
+                <button class="tab-btn" data-tab="messages">Messages</button>
+                <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Mint NFT Tab -->
+                <div id="mint" class="tab-pane active">
+                    <h2>Create & Mint Your AI NFT</h2>
+                    <div class="prompt-selection">
+                        <h3>Select Generation Mode</h3>
+                        <div class="mode-selector">
+                            <button class="mode-btn active" data-mode="manual">Manual Prompt</button>
+                            <button class="mode-btn" data-mode="auto">Auto Generate</button>
+                        </div>
+                    </div>
+
+                    <div id="manual-mode" class="prompt-input">
+                        <textarea id="prompt" placeholder="Enter your prompt for the AI to generate an image..."></textarea>
+                        <div class="prompt-examples">
+                            <p>Examples: "Vibrant digital art landscape with mountains, NFT style", "Futuristic robot in neon city, Monad style NFT"</p>
+                        </div>
+                    </div>
+
+                    <div id="auto-mode" class="prompt-input" style="display: none;">
+                        <div class="auto-options">
+                            <select id="promptStyle">
+                                <option value="abstract">Abstract Digital Art</option>
+                                <option value="futuristic">Futuristic Technology</option>
+                                <option value="nature">Nature Elements</option>
+                                <option value="space">Space Exploration</option>
+                                <option value="cyberpunk">Cyberpunk World</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="generateButton" class="btn btn-primary">
+                        <i class="fas fa-magic"></i> Generate Image
+                    </button>
+
+                    <div class="image-preview-container" style="display: none;">
+                        <div class="image-preview">
+                            <img id="generatedImage" src="" alt="Generated NFT image">
+                        </div>
+                        
+                        <!-- NFT Name Input -->
+                        <div class="nft-name-input">
+                            <input type="text" id="nftName" placeholder="Give your NFT a name">
+                        </div>
+                        
+                        <div class="image-actions">
+                            <button id="mintButton" class="btn btn-success">
+                                <i class="fas fa-coins"></i> Mint NFT
+                            </button>
+                            <button id="regenerateButton" class="btn btn-secondary">
+                                <i class="fas fa-redo"></i> Regenerate
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="minting-status" style="display: none;">
+                        <div class="status-spinner"></div>
+                        <p id="mintingStatus">Processing your NFT...</p>
+                    </div>
+
+                    <div class="minted-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>NFT Successfully Minted!</h3>
+                        <p>Token ID: <span id="mintedTokenId"></span></p>
+                        <p>Name: <span id="mintedNftName"></span></p>
+                        <a id="viewOnExplorer" href="#" target="_blank">View on Explorer</a>
+                    </div>
+                </div>
+
+                <!-- Gallery Tab -->
+                <div id="gallery" class="tab-pane">
+                    <div class="gallery-intro">
+                        <h2>NFT Gallery</h2>
+                        <p>Discover NFTs created by the community. Click on any NFT to interact with it.</p>
+                    </div>
+                    
+                    <div class="gallery-options">
+                        <div class="gallery-filter">
+                            <select id="galleryFilter">
+                                <option value="all">All NFTs</option>
+                                <option value="owned">My NFTs</option>
+                            </select>
+                        </div>
+                        <div class="gallery-search">
+                            <input type="text" id="gallerySearch" placeholder="Search by ID, name, or owner...">
+                            <button id="searchButton"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="nft-gallery" id="nftGallery">
+                        <!-- NFTs will be loaded here dynamically -->
+                        <div class="gallery-loader">Loading NFTs...</div>
+                    </div>
+                </div>
+
+                <!-- Messages Tab -->
+                <div id="messages" class="tab-pane">
+                    <h2>Your NFT Messages</h2>
+                    <div class="messages-container">
+                        <div class="nft-selector-container">
+                            <select id="nftSelector" class="nft-selector">
+                                <option value="">Select an NFT</option>
+                            </select>
+                            <button id="refreshMessages" class="refresh-messages-btn btn btn-secondary">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+
+                        <div class="messages-content">
+                            <div class="no-nfts-message" style="display: none;">
+                                <p>You don't have any NFTs yet.</p>
+                                <button class="create-nft-btn btn btn-primary">Create Your First NFT</button>
+                            </div>
+                            
+                            <div class="not-connected-message" style="display: none;">
+                                <p>Please connect your wallet to view messages.</p>
+                                <button class="connect-wallet-btn btn btn-primary">Connect Wallet</button>
+                            </div>
+                            
+                            <div class="no-messages-selected" style="display: none;">
+                                <p>Select an NFT to view its messages.</p>
+                            </div>
+                            
+                            <div class="no-messages" style="display: none;">
+                                <i class="fas fa-envelope-open"></i>
+                                <p>No messages for this NFT yet.</p>
+                            </div>
+                            
+                            <div class="messages-loading" style="display: none;">
+                                <div class="loader"></div>
+                                <p>Loading messages...</p>
+                            </div>
+                            
+                            <div class="messages-error" style="display: none;">
+                                <p>Error loading messages. Please try again.</p>
+                            </div>
+                            
+                            <ul class="messages-list" id="messagesList">
+                                <!-- Messages will be loaded here dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Tab -->
+                <div id="leaderboard" class="tab-pane">
+                    <div class="leaderboard-container">
+                        <h2 class="leaderboard-title">NFT Messaging Leaderboard</h2>
+                        
+                        <div class="leaderboard-tabs">
+                            <button class="leaderboard-tab active" data-tab="senders">Top Message Senders</button>
+                            <button class="leaderboard-tab" data-tab="receivers">Top Message Receivers</button>
+                        </div>
+                        
+                        <div class="leaderboard-content">
+                            <div class="leaderboard-tab-content active" id="senders-content">
+                                <div class="leaderboard-loading" id="senders-loading">Loading top senders...</div>
+                                <div class="leaderboard-error" id="senders-error"></div>
+                                <div class="leaderboard-list" id="senders-list"></div>
+                            </div>
+                            
+                            <div class="leaderboard-tab-content" id="receivers-content">
+                                <div class="leaderboard-loading" id="receivers-loading">Loading top receivers...</div>
+                                <div class="leaderboard-error" id="receivers-error"></div>
+                                <div class="leaderboard-list" id="receivers-list"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="leaderboard-refresh">
+                            <button class="refresh-btn btn btn-secondary">
+                                <i class="fas fa-sync-alt"></i> Refresh Leaderboard
+                            </button>
+                            <span class="last-updated">Last updated: <span id="update-time">Never</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer Section -->
+        <footer>
+            <div class="footer-content">
+                <div class="project-info">
+                    <p>AI NFT Platform on Monad Testnet</p>
+                    <p>Contract: <a href="https://testnet.monadexplorer.com/address/0x5C8BbC7e9c47785F89F02fb01966468d30d9476D" target="_blank">0x5C8BbC7e9c47785F89F02fb01966468d30d9476D</a></p>
+                </div>
+                <div class="social-links">
+                    <a href="https://twitter.com/sadeghss50" target="_blank"><i class="fab fa-twitter"></i></a>
+                    <a href="https://github.com/onixs50" target="_blank"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- NFT Details Modal -->
+    <div id="nftModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="nft-details">
+                <div class="nft-image">
+                    <img id="modalNftImage" src="" alt="NFT">
+                </div>
+                <div class="nft-info">
+                    <h3 id="modalName">NFT Name</h3>
+                    <p>Token ID: <span id="modalTokenId"></span></p>
+                    <p>Owner: <span id="modalOwner"></span> <button class="copy-btn" data-copy="owner"><i class="fas fa-copy"></i></button></p>
+                    <p>Creation Date: <span id="modalDate"></span></p>
+                    
+                    <div class="nft-actions">
+                        <button id="sendMessageBtn" class="btn">
+                            <i class="fas fa-envelope"></i> Send Message
+                        </button>
+                        <button id="burnNftBtn" class="btn btn-danger" style="display: none;">
+                            <i class="fas fa-fire"></i> Burn NFT
+                        </button>
+                    </div>
+                    
+                    <div class="message-form" style="display: none;">
+                        <textarea id="messageText" placeholder="Write your message..."></textarea>
+                        <button id="submitMessageBtn" class="btn btn-primary">Send</button>
+                    </div>
+
+                    <div class="nft-messages">
+                        <h4>Messages</h4>
+                        <div class="messages-list" id="modalMessagesList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Modal -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal close-info-modal">&times;</span>
+            <div class="info-content">
+                <h2>About This Project ?</h2>
+                <p>This platform allows you to create AI-generated NFTs on the Monad Testnet and interact with them through messages. Built with love for the Monad network!</p>
+                
+                <h3>Key Features:</h3>
+                <ul>
+                    <li>Generate unique images using advanced AI models with custom prompts</li>
+                    <li>Choose between manual prompting or auto-generation with predefined styles</li>
+                    <li>Mint your generated images as NFTs on the Monad blockchain</li>
+                    <li>View all NFTs created by the community in the Gallery</li>
+                    <li>Send messages to any NFT owner</li>
+                    <li>Receive and manage messages sent to your NFTs</li>
+                    <li>Check the Leaderboard to see top message senders and receivers</li>
+                    <li>Burn your own NFTs if desired</li>
+                </ul>
+                
+                <h3>How It Works:</h3>
+                <ol>
+                    <li>Connect your MetaMask wallet to the Monad Testnet</li>
+                    <li>Create an AI-generated image using the prompt system</li>
+                    <li>Mint your image as an NFT on the blockchain</li>
+                    <li>Interact with other NFTs by sending messages</li>
+                    <li>View messages sent to your NFTs in the Messages tab</li>
+                </ol>
+                
+                <div class="network-info">
+                    <h3>Monad Testnet Info:</h3>
+                    <p>RPC URL: https://testnet-rpc.monad.xyz</p>
+                    <p>Chain ID: 10143 (0x279f)</p>
+                    <p>Currency Symbol: MON</p>
+                    <p>Explorer: <a href="https://testnet.monadexplorer.com" target="_blank">https://testnet.monadexplorer.com</a></p>
+                </div>
+                
+                <div class="project-description">
+                    <h3>About Monad</h3>
+                    <p>Monad is a high-performance Layer 1 blockchain designed to address the challenges of scalability, performance, and developer experience. With its innovative architecture, Monad delivers exceptional throughput and minimal latency while maintaining strong security guarantees.</p>
+                    
+                    <p>This NFT platform showcases the capabilities of the Monad network for handling complex operations like NFT minting and messaging, demonstrating its potential for creating engaging decentralized applications.</p>
+                </div>
+                
+                <p class="love-note">Built with love and creativity for the Monad ecosystem. Let's shape the future of blockchain together!</p>
+                
+                <p class="onixia-credit">Designed by <strong>onixia</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Project Button -->
+    <button id="openInfoModal" class="info-button" onclick="document.getElementById('infoModal').style.display='block';">
+        <i class="fas fa-info-circle"></i> About This Project
+    </button>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="animation.js"></script>
+    <script src="info-modal.js"></script>
+    
+    <!-- Load ES modules -->
+    <script type="module" src="web3.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

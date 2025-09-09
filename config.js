@@ -29,7 +29,7 @@ export const NETWORK_CONFIG = {
 // Image generation APIs
 export const IMAGE_GENERATION = {
   // Hugging Face configuration
-  HF_API_KEY: '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',
+  HF_API_KEY: process.env.HF_API_KEY,
   HF_IMAGE_MODEL: 'stabilityai/stable-diffusion-xl-base-1.0',
   
   // AvalAI configuration
@@ -117,4 +117,5 @@ export default {
   IMAGE_GENERATION,
   IPFS_CONFIG,
   UI_CONFIG
+
 };
